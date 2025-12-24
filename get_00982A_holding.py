@@ -61,7 +61,7 @@ try:
     
     # 等待表格內容載入
     wait = WebDriverWait(driver, 15)
-    wait.until(EC.presence_of_element_located((By.XPATH, "//*[contains(text(), '台積電')]")))
+    wait.until(EC.presence_of_element_located((By.XPATH, "//*[contains(text(), '股票名稱')]")))
     time.sleep(2)
     logger.info("頁面載入完成")
     
@@ -176,43 +176,9 @@ try:
         logger.info(f"前 10 筆資料:\n{df.head(10).to_string()}")
         
         # 儲存檔案（使用從網頁提取的日期作為檔名）
-        latest_file = None
-        existing_files = list(data_path.glob("*.parquet"))
-
-        if existing_files:
-            # 找到日期最大的檔案（檔名排序，因為是 YYYYMMDD 格式）
-            latest_file = max(existing_files, key=lambda x: x.stem)
-            logger.info(f"找到最新檔案: {latest_file.name}")
-            
-            try:
-                # 讀取最新檔案
-                df_latest = pd.read_parquet(latest_file)
-                
-                # 比較資料是否完全相同
-                if df.equals(df_latest):
-                    logger.info("新資料與最新檔案完全相同，不需要重複儲存")
-                    logger.info("程式結束")
-                    # 不儲存，直接結束（會執行 finally 區塊）
-                else:
-                    logger.info("資料有更新，準備儲存新檔案")
-                    # 儲存檔案
-                    output_file = data_path / f"{timestamp}.parquet"
-                    df.to_parquet(output_file, index=False)
-                    logger.info(f"資料已儲存至: {output_file}")
-                    
-            except Exception as e:
-                logger.warning(f"讀取或比較舊檔案時發生錯誤: {e}")
-                # 發生錯誤時還是正常儲存
-                output_file = data_path / f"{timestamp}.parquet"
-                df.to_parquet(output_file, index=False)
-                logger.info(f"資料已儲存至: {output_file}")
-        else:
-            # 沒有舊檔案，直接儲存
-            logger.info("沒有找到舊檔案，直接儲存新資料")
-            output_file = data_path / f"{timestamp}.parquet"
-            df.to_parquet(output_file, index=False)
-            logger.info(f"資料已儲存至: {output_file}")
-            
+        output_file = data_path / f"{timestamp}.parquet"
+        df.to_parquet(output_file, index=False)
+        logger.info(f"資料已儲存至: {output_file}")
     
 except Exception as e:
     logger.error(f"執行時發生錯誤: {str(e)}", exc_info=True)
